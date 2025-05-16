@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import styles from "./ProductForm.module.css";
 import { ProductContext } from "../../context/ProductContext";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const ProductForm = ({ onClose, product, onUpdate }) => {
   const {
@@ -20,6 +21,7 @@ const ProductForm = ({ onClose, product, onUpdate }) => {
   const [selectedSubcategory, setSelectedSubCategory] = useState("");
   const [description, setDescription] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const formRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -43,6 +45,7 @@ const ProductForm = ({ onClose, product, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start spinner
     try {
       const formData = new FormData();
       formData.append("title", title);
@@ -50,11 +53,10 @@ const ProductForm = ({ onClose, product, onUpdate }) => {
       formData.append("description", description);
       formData.append("variants", JSON.stringify(variants));
 
-      // Append images
       const fileInput = fileInputRef.current;
       if (fileInput && fileInput.files.length > 0) {
         Array.from(fileInput.files).forEach((file, index) => {
-          formData.append(`image${index + 1}`, file); // image1, image2, image3
+          formData.append(`image${index + 1}`, file);
         });
       }
 
@@ -82,15 +84,17 @@ const ProductForm = ({ onClose, product, onUpdate }) => {
           }
         );
       }
+
       if (response.status === 200 || response.status === 201) {
         getProductsData(token);
+        toast.success("Product added successfully");
 
         let updatedProduct = product;
         if (product && product._id) {
           const res = await getProductById(product._id);
           updatedProduct = res.product;
           if (onUpdate) {
-            onUpdate(updatedProduct); // Update parent state
+            onUpdate(updatedProduct);
           }
         }
 
@@ -102,6 +106,8 @@ const ProductForm = ({ onClose, product, onUpdate }) => {
         "Error details:",
         error.response?.data || "No response data"
       );
+    } finally {
+      setLoading(false); // Stop spinner
     }
   };
 
@@ -171,6 +177,11 @@ const ProductForm = ({ onClose, product, onUpdate }) => {
 
   return (
     <div className={styles.modalOverlay}>
+      {loading && (
+        <div className={styles.spinnerOverlay}>
+          <div className={styles.spinner}></div>
+        </div>
+      )}
       <div className={styles.modalContent} ref={formRef}>
         <h2 className={styles.modalTitle}>
           {product ? "Edit Product" : "Add Product"}

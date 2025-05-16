@@ -1,5 +1,5 @@
 // ProductList.jsx
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styles from './ProductList.module.css';
 import ActionButtons from './ActionButtons';
 import ProductCard from './ProductCard';
@@ -8,6 +8,7 @@ import { ProductContext } from '../../context/ProductContext';
 
 const ProductList = () => {
   const { products } = useContext(ProductContext);
+  const [loading, setLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -19,16 +20,36 @@ const ProductList = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = products.slice(startIndex, endIndex);
 
+  useEffect(() => {
+  if (products && products.length > 0) {
+    setLoading(false);
+  }
+}, [products]);
+
   return (
     <div className={styles.container}>
-      <ActionButtons/>
-      <div className={styles.productGrid}>
-        {currentProducts.map((product, index) => (
-          <ProductCard key={index} product={product} />
-        ))}
+    {loading ? (
+      <div className={styles.spinnerWrapper}>
+        <div className={styles.spinner}></div>
       </div>
-      <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} onPageChange={(page) => setCurrentPage(page)} itemsPerPage={itemsPerPage}/>
-    </div>
+    ) : (
+      <>
+        <ActionButtons />
+        <div className={styles.productGrid}>
+          {currentProducts.map((product, index) => (
+            <ProductCard key={index} product={product} />
+          ))}
+        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={(page) => setCurrentPage(page)}
+          itemsPerPage={itemsPerPage}
+        />
+      </>
+    )}
+  </div>
   );
 };
 

@@ -13,9 +13,13 @@ const ProductContextProvider = (props) => {
   const [categoryData, setCategoryData] = useState([]);
   const [subCategoryMap, setSubCategoryMap] = useState({});
   const [allSubcategories, setAllSubcategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getProductsData = async (token) => {
+    if (!token) return; // Skip if no token is available
+    
     try {
+      setIsLoading(true);
       const response = await axios.get(backendUrl + "/user/product/get", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -27,11 +31,19 @@ const ProductContextProvider = (props) => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.log("",);
+      console.log("error", error.message);
+      // Only show error toast if it's not a 404 due to no authentication
+      if (error.response && error.response.status !== 404) {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const getCategoryData = async (token) => {
+    if (!token) return; // Skip if no token is available
+    
     try {
       const response = await axios.get(backendUrl + "/user/category/view", {
         headers: {
@@ -42,15 +54,21 @@ const ProductContextProvider = (props) => {
         setCategoryData(response.data.allCategories);
       }
     } catch (error) {
-      console.log("",);
+      console.log("error", error.message);
+      // Only log error, don't show toast for this initial load
     }
   };
 
   const getSubCategories = async (categoryId) => {
+    if (!token) return; // Skip if no token is available
+    
     try {
       console.log("categoryId", categoryId);
       const response = await axios.get(backendUrl + "/user/subcategory/view", {
         params: { categoryId },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       console.log("subcategory", response);
       setSubCategoryMap((prev) => ({
@@ -63,7 +81,14 @@ const ProductContextProvider = (props) => {
   };
 
   const filterProductsBySubcategory = async (subcategoryId) => {
+    if (!token) {
+      toast.info("Please login to view filtered products");
+      navigate("/login");
+      return;
+    }
+    
     try {
+      setIsLoading(true);
       const response = await axios.get(backendUrl + "/user/filter/", {
         params: { subcategoryId },
         headers: {
@@ -79,10 +104,14 @@ const ProductContextProvider = (props) => {
         "Error filtering products",
         err.response?.data || err.message
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const getAllSubcategories = async () => {
+    if (!token) return; // Skip if no token is available
+    
     try {
       const response = await axios.get(
         backendUrl + "/user/subcategory/subcategories",
@@ -102,6 +131,12 @@ const ProductContextProvider = (props) => {
   };
 
   const getProductById = async (id) => {
+    if (!token) {
+      toast.info("Please login to view product details");
+      navigate("/login");
+      return null;
+    }
+    
     try {
       const res = await axios.get(backendUrl + `/user/product/get/${id}`, {
         headers: {
@@ -116,6 +151,12 @@ const ProductContextProvider = (props) => {
   };
 
   const addCategory = async (categoryName) => {
+    if (!token) {
+      toast.info("Please login to add categories");
+      navigate("/login");
+      return null;
+    }
+    
     try {
       const response = await axios.post(
         backendUrl + "/user/category/add",
@@ -131,7 +172,6 @@ const ProductContextProvider = (props) => {
 
       if (response.status === 201) {
         setCategoryData((prev) => [...prev, response.data.category]);
-
         return response.data;
       }
     } catch (error) {
@@ -141,6 +181,12 @@ const ProductContextProvider = (props) => {
   };
 
   const addSubCategory = async (categoryId, subCategoryName) => {
+    if (!token) {
+      toast.info("Please login to add subcategories");
+      navigate("/login");
+      return null;
+    }
+    
     try {
       console.log("categoryId", categoryId);
       console.log("subCategoryName", subCategoryName);
@@ -166,7 +212,14 @@ const ProductContextProvider = (props) => {
   };
 
   const searchProducts = async (searchQuery) => {
+    if (!token) {
+      toast.info("Please login to search products");
+      navigate("/login");
+      return;
+    }
+    
     try {
+      setIsLoading(true);
       console.log("searchQuery", searchQuery);
       const response = await axios.get(`${backendUrl}/user/search/search`, {
         params: { productName: searchQuery },
@@ -182,18 +235,26 @@ const ProductContextProvider = (props) => {
     } catch (error) {
       console.error("Error during product search:", error.message);
       toast.error("Search failed. Try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    // Check for token in localStorage
     const storedToken = localStorage.getItem("token");
-
+    
     if (storedToken) {
-      setToken(storedToken); // This triggers the next effect below
+      setToken(storedToken);
+      setIsLoading(true);
+    } else {
+      // No token found, set loading to false
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    // Only make API calls if token exists
     if (token) {
       getProductsData(token);
       getCategoryData(token);
@@ -217,6 +278,7 @@ const ProductContextProvider = (props) => {
     addCategory,
     addSubCategory,
     searchProducts,
+    isLoading,
   };
 
   return (
