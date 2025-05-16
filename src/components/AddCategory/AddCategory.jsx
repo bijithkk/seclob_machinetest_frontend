@@ -1,10 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext, useState } from 'react';
 import styles from './AddCategory.module.css';
+import { ProductContext } from '../../context/ProductContext';
+import { toast } from 'react-toastify';
 
 const AddCategory = ({ onClose }) => {
   const formRef = useRef(null);
+  const { addCategory } = useContext(ProductContext);
+  const [categoryName, setCategoryName] = useState("");
   
-  // Handle clicking outside the form to close it
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (formRef.current && !formRef.current.contains(event.target)) {
@@ -18,11 +21,16 @@ const AddCategory = ({ onClose }) => {
     };
   }, [onClose]);
 
-  const handleSubmit = (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your category submission logic here
-    console.log('Category form submitted');
-    onClose();
+    if (!categoryName.trim()) return;
+    try {
+      await addCategory(categoryName.trim());
+      toast.success("category added successfully",{autoClose: 1500});
+      onClose();
+    } catch (error) {
+      console.log("error",error);
+    }
   };
 
    const handleKeyDown = (e) => {
@@ -42,8 +50,8 @@ const AddCategory = ({ onClose }) => {
           type="text"
           className={styles.categoryInput}
           placeholder="Enter category name"
-        //   value={categoryName}
-        //   onChange={(e) => setCategoryName(e.target.value)}
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
         />

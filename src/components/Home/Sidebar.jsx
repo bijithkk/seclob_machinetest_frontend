@@ -1,65 +1,92 @@
-import React, { useState } from 'react';
-import styles from './Sidebar.module.css';
+import React, { useContext, useState } from "react";
+import styles from "./Sidebar.module.css";
+import { ProductContext } from "../../context/ProductContext";
 
 const Sidebar = () => {
-  const [laptopExpanded, setLaptopExpanded] = useState(true);
-  
+  const {
+    categoryData,
+    getSubCategories,
+    subCategoryMap,
+    filterProductsBySubcategory,
+    getProductsData,
+    token
+  } = useContext(ProductContext);
+  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+
+  const handleCategoryClick = async (categoryId) => {
+    if (expandedCategory === categoryId) {
+      setExpandedCategory(null);
+    } else {
+      setExpandedCategory(categoryId);
+      if (!subCategoryMap[categoryId]) {
+        await getSubCategories(categoryId);
+      }
+    }
+  };
+
+  const handleSubCategoryClick = async (subCategoryId) => {
+  if (selectedSubCategory === subCategoryId) {
+    setSelectedSubCategory(null);
+    await getProductsData(token); // 👈 Restore all products
+  } else {
+    setSelectedSubCategory(subCategoryId);
+    await filterProductsBySubcategory(subCategoryId);
+  }
+};
+
   return (
     <div className={styles.sidebar}>
       <div className={styles.navigationItem}>
         <span>Home</span>
         <span className={styles.chevron}>›</span>
       </div>
-      
+
       <h3 className={styles.categoryTitle}>Categories</h3>
-      
+
       <ul className={styles.categoryList}>
         <li className={styles.categoryItem}>All categories</li>
-        
-        <li className={`${styles.categoryItem} ${styles.hasChildren}`}>
-          <div 
-            className={styles.categoryHeader}
-            onClick={() => setLaptopExpanded(!laptopExpanded)}
+
+        {categoryData.map((cat) => (
+          <li
+            key={cat._id}
+            className={`${styles.categoryItem} ${styles.hasChildren}`}
           >
-            <span>Laptop</span>
-            <span className={`${styles.chevron} ${laptopExpanded ? styles.expanded : ''}`}>
-              ›
-            </span>
-          </div>
-          
-          {laptopExpanded && (
-            <ul className={styles.subCategories}>
-              <li className={styles.subCategory}>
-                <div className={styles.checkboxContainer}>
-                  <div className={styles.checkbox}>
-                    <div className={styles.checkmark}>✓</div>
-                  </div>
-                  <span>Hp</span>
-                </div>
-              </li>
-              <li className={styles.subCategory}>
-                <div className={styles.checkboxContainer}>
-                  <div className={`${styles.checkbox} ${styles.unchecked}`}></div>
-                  <span>Dell</span>
-                </div>
-              </li>
-            </ul>
-          )}
-        </li>
-        
-        <li className={`${styles.categoryItem} ${styles.hasChildren}`}>
-          <div className={styles.categoryHeader}>
-            <span>Tablet</span>
-            <span className={styles.chevron}>›</span>
-          </div>
-        </li>
-        
-        <li className={`${styles.categoryItem} ${styles.hasChildren}`}>
-          <div className={styles.categoryHeader}>
-            <span>Headphones</span>
-            <span className={styles.chevron}>›</span>
-          </div>
-        </li>
+            <div
+              className={styles.categoryHeader}
+              onClick={() => handleCategoryClick(cat._id)}
+            >
+              <span>{cat.name}</span>
+              <span
+                className={`${styles.chevron} ${
+                  expandedCategory === cat._id ? styles.expanded : ""
+                }`}
+              >
+                ›
+              </span>
+            </div>
+
+            {expandedCategory === cat._id && subCategoryMap[cat._id] && (
+              <ul className={styles.subCategories}>
+                {subCategoryMap[cat._id].map((sub) => (
+                  <li key={sub._id} className={styles.subCategory}>
+                    <div
+                      className={styles.checkboxContainer}
+                      onClick={() => handleSubCategoryClick(sub._id)}
+                    >
+                      <div className={styles.checkbox}>
+                        {selectedSubCategory === sub._id && (
+                        <div className={styles.checkmark}>✓</div>
+                        )}
+                      </div>
+                      <span>{sub.name}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
       </ul>
     </div>
   );

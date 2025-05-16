@@ -1,8 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import styles from "./AddSubCategory.module.css";
+import { ProductContext } from "../../context/ProductContext";
 
 const AddSubCategory = ({ onClose }) => {
   const formRef = useRef(null);
+  const { categoryData, addSubCategory } = useContext(ProductContext);
+  console.log("categoryData", categoryData);
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [subCategoryName, setSubCategoryName] = useState("");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -17,36 +23,49 @@ const AddSubCategory = ({ onClose }) => {
     };
   }, [onClose]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your category submission logic here
-    console.log('Category form submitted');
-    onClose();
+    if (!selectedCategoryId || !subCategoryName.trim()) {
+      alert("Please select a category and enter a subcategory name.");
+      return;
+    }
+
+    try {
+      await addSubCategory(selectedCategoryId, subCategoryName.trim());
+      onClose(); // Close modal after success
+    } catch (error) {
+      console.log("error",error)
+    }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSubmit();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       onClose();
     }
   };
 
-
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <h2 className={styles.modalTitle}>Add Category</h2>
+        <h2 className={styles.modalTitle}>Add SubCategory</h2>
 
         <div className={styles.formGroup}>
           <div className={styles.selectWrapper}>
-            <select className={styles.select}>
+            <select
+              className={styles.select}
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+            >
               <option value="" disabled>
                 Select category
               </option>
-              <option value="category1">Category 1</option>
-              <option value="category2">Category 2</option>
-              <option value="category3">Category 3</option>
+              {categoryData?.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
             <div className={styles.arrow}></div>
           </div>
@@ -56,8 +75,8 @@ const AddSubCategory = ({ onClose }) => {
           type="text"
           className={styles.categoryInput}
           placeholder="Enter category name"
-          //   value={categoryName}
-          //   onChange={(e) => setCategoryName(e.target.value)}
+          value={subCategoryName}
+          onChange={(e) => setSubCategoryName(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
         />

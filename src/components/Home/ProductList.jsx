@@ -1,35 +1,33 @@
 // ProductList.jsx
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import styles from './ProductList.module.css';
-import laptopImage from '../../assets/laptop.jpg'; // You'll need to add an image file to your project
 import ActionButtons from './ActionButtons';
 import ProductCard from './ProductCard';
 import Pagination from './Pagination';
+import { ProductContext } from '../../context/ProductContext';
 
 const ProductList = () => {
-  // Mock data for the products (6 identical products as shown in the image)
-  const products = Array(6).fill({
-    id: 1,
-    name: 'HP AMD Ryzen 3',
-    price: 529.99,
-    image: laptopImage,
-    rating: 0, // 0 out of 5 based on the image
-  });
+  const { products } = useContext(ProductContext);
 
-  // Mock data for pagination
-  const currentPage = 1;
-  const totalPages = 10;
-  const totalItems = 456;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const totalItems = products.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = products.slice(startIndex, endIndex);
 
   return (
     <div className={styles.container}>
       <ActionButtons/>
       <div className={styles.productGrid}>
-        {products.map((product, index) => (
+        {currentProducts.map((product, index) => (
           <ProductCard key={index} product={product} />
         ))}
       </div>
-      <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} />
+      <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} onPageChange={(page) => setCurrentPage(page)} itemsPerPage={itemsPerPage}/>
     </div>
   );
 };

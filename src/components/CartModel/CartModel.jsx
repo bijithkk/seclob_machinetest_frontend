@@ -1,25 +1,35 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styles from './CartModal.module.css';
+import { ProductContext } from '../../context/ProductContext';
+import axios from 'axios';
+import { RxCrossCircled } from "react-icons/rx";
 
 const CartModal = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+  const { backendUrl, token } = useContext(ProductContext);
+  const [wishlistItems, setWishlistItems] = useState([]);
 
-  const cartItems = [
-    {
-      id: 1,
-      name: 'HP AMD Ryzen 3',
-      price: 529.99,
-      image: '/laptop-image.jpg', // Replace with actual image path
-      rating: 5
-    },
-    {
-      id: 2,
-      name: 'HP AMD Ryzen 3',
-      price: 529.99,
-      image: '/laptop-image.jpg', // Replace with actual image path
-      rating: 3
-    }
-  ];
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (!isOpen) return;
+      try {
+        const response = await axios.get(`${backendUrl}/user/wishlist/get`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("response",response)
+        if(response.status === 200){
+          setWishlistItems(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist:', error);
+      }
+    };
+
+    fetchWishlist();
+  }, [isOpen, backendUrl, token]);
+  
+  if (!isOpen) return null;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -39,29 +49,36 @@ const CartModal = ({ isOpen, onClose }) => {
         </div>
         
         <div className={styles.itemsContainer}>
-          {cartItems.map(item => (
-            <div key={item.id} className={styles.cartItem}>
-              <div className={styles.itemImage}>
-                <img src={item.image} alt={item.name} />
-              </div>
-              <div className={styles.itemDetails}>
-                <div className={styles.itemName}>{item.name}</div>
-                <div className={styles.itemPrice}>${item.price.toFixed(2)}</div>
-                <div className={styles.itemRating}>
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={i < item.rating ? styles.starFilled : styles.starEmpty}>★</span>
-                  ))}
+          {wishlistItems.length === 0 ? (
+            <div className={styles.empty}>Your wishlist is empty</div>
+          ) : (
+            wishlistItems.map(item => (
+              <div key={item._id} className={styles.cartItem}>
+                <div className={styles.itemImage}>
+                  <img src={item.productId.image} alt={item.title} />
+                </div>
+                <div className={styles.itemDetails}>
+                  <div className={styles.itemName}>{item.productId.title}</div>
+                  <div className={styles.itemPrice}>${item.productId.variants?.[0]?.price.toFixed(2)}</div>
+                  <div className={styles.itemRating}>
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={i < item.rating ? styles.starFilled : styles.starEmpty}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.removeItem}>
+                  {/* Add removal logic here later */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
                 </div>
               </div>
-              <div className={styles.removeItem}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
+
+
       </div>
     </div>
   );

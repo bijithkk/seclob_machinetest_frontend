@@ -6,7 +6,7 @@ import AddCategory from '../AddCategory/AddCategory';
 import AddSubCategory from '../AddSubCategory/AddSubCategory';
 
 const ActionButtons = () => {
-  const [showProductForm, setShowProductForm] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false); 
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showSubCategoryForm, setShowSubCategoryForm] = useState(false);
   
