@@ -1,0 +1,95 @@
+/* Sidebar.module.css */
+
+.sidebar {
+  width: 280px;
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
+  height: 100vh;
+  padding: 10px 0;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.navigationItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.categoryTitle {
+  padding: 15px 20px 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0a3d62;
+  margin: 0;
+}
+
+.categoryList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.categoryItem {
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.categoryItem.hasChildren .categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chevron {
+  font-size: 18px;
+  font-weight: bold;
+  transform: rotate(90deg);
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.chevron.expanded {
+  transform: rotate(-90deg);
+}
+
+.subCategories {
+  list-style-type: none;
+  padding: 5px 0 0 0;
+  margin: 5px 0 0 0;
+}
+
+.subCategory {
+  padding: 8px 0 8px 10px;
+  font-size: 15px;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #333;
+}
+
+.checkbox.unchecked {
+  background-color: #b8e0ea;
+  border: none;
+}
+
+.checkmark {
+  color: white;
+  font-size: 12px;
+}
